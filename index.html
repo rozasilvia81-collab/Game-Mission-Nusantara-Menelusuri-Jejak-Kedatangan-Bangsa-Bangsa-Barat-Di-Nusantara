@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MISSION NUSANTARA: TIME TRAVEL (SPY EDITION)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Library Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #080d1a;
+            --bg-card: rgba(13, 21, 38, 0.85);
+            --gold-primary: #f59e0b;
+            --gold-light: #fbbf24;
+            --gold-glow: rgba(245, 158, 11, 0.4);
+            --orange-accent: #d97706;
+            --orange-btn: #c2410c;
+            --orange-glow: rgba(194, 65, 12, 0.5);
+            --green-accent: #10b981;
+            --red-accent: #ef4444;
+            --text-light: #ffffff;
+            --text-muted: #94a3b8;
+            --status-pending: #1e293b;
+            --status-pending-border: #334155;
+            --status-pending-text: #64748b;
+            --border-gold: rgba(245, 158, 11, 0.35);
+            --font-title: 'Cinzel', serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --font-latin: 'Great Vibes', cursive;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body, html {
+            width: 100vw; height: 100vh; overflow: hidden;
+            background-color: var(--bg-dark); color: var(--text-light);
+            font-family: var(--font-body); display: flex;
+            justify-content: center; align-items: center;
+        }
+
+        .compass-bg {
+            position: absolute; width: 650px; height: 650px; border-radius: 50%;
+            border: 1px solid rgba(245, 158, 11, 0.12); pointer-events: none;
+            z-index: 0; display: flex; justify-content: center; align-items: center;
+        }
+        .compass-bg::before {
+            content: ''; position: absolute; width: 500px; height: 500px;
+            border-radius: 50%; border: 1px dashed rgba(245, 158, 11, 0.15);
+        }
+
+        #app-container {
+            position: relative; width: 100%; height: 100%;
+            max-width: 1400px; max-height: 900px; z-index: 1;
+            display: flex; flex-direction: column; padding: 1.5rem 2.5rem;
+        }
+
+        .top-header { position: absolute; top: 1.5rem; right: 2.5rem; z-index: 10; display: flex; gap: 0.8rem; }
+
+        .btn-fullscreen {
+            background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-gold);
+            color: var(--gold-light); padding: 0.5rem 1rem; border-radius: 6px;
+            font-family: var(--font-body); font-weight: 700; font-size: 0.8rem;
+            cursor: pointer; letter-spacing: 1px; transition: all 0.2s ease;
+        }
+        .btn-fullscreen:hover { background: rgba(245, 158, 11, 0.2); box-shadow: 0 0 12px var(--gold-glow); }
+
+        .view-section {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out;
+            padding: 2rem 3rem; justify-content: center; align-items: center; overflow-y: auto;
+        }
+        .view-section.active { opacity: 1; pointer-events: auto; }
+
+        #loading-screen { background: var(--bg-dark); z-index: 100; text-align: center; }
+
+        .ship-icon {
+            font-size: 3rem; color: var(--gold-light); margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 10px var(--gold-glow)); animation: float 3s ease-in-out infinite;
+        }
+
+        .loading-title { font-family: var(--font-title); font-size: 3rem; font-weight: 900; letter-spacing: 3px; }
+        .loading-subtitle { font-family: var(--font-title); font-size: 1.2rem; color: var(--gold-light); letter-spacing: 4px; margin-bottom: 0.5rem; }
+        .loading-desc { 
+            color: var(--gold-light); 
+            font-family: var(--font-latin); 
+            font-size: 1.8rem; 
+            margin-bottom: 1.8rem; 
+            letter-spacing: 1px; 
+            text-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        .progress-bar-wrap {
+            width: 380px; max-width: 90%; height: 8px; background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px; overflow: hidden; border: 1px solid var(--border-gold); margin: 0 auto 0.8rem auto;
+        }
+        .progress-bar-fill {
+            width: 0%; height: 100%; background: linear-gradient(90deg, var(--orange-accent), var(--gold-primary));
+            box-shadow: 0 0 10px var(--gold-glow); transition: width 0.1s linear;
+        }
+        .loading-status-text { font-size: 0.8rem; color: var(--gold-light); letter-spacing: 2px; font-weight: 700; }
+
+        .dashboard-content { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; width: 100%; padding-top: 1rem; }
+        .main-hero { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .hero-ship { font-size: 2.8rem; color: var(--gold-light); margin-bottom: 0.2rem; filter: drop-shadow(0 0 8px var(--gold-glow)); }
+        .hero-title { font-family: var(--font-title); font-size: 3.6rem; font-weight: 900; letter-spacing: 4px; color: #ffffff; line-height: 1.1; }
+        .hero-subtitle { font-family: var(--font-title); font-size: 1.35rem; color: var(--gold-light); letter-spacing: 5px; margin-top: 0.3rem; margin-bottom: 0.8rem; }
+        .hero-desc { color: var(--text-muted); font-size: 1rem; margin-bottom: 1.2rem; }
+
+        .pill-badge {
+            background: rgba(15, 23, 42, 0.8); border: 1px solid var(--orange-accent);
+            padding: 0.4rem 1.2rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700;
+            color: var(--text-light); letter-spacing: 1px; margin-bottom: 1.8rem;
+        }
+
+        .main-action-buttons { display: flex; gap: 1.5rem; justify-content: center; width: 100%; flex-wrap: wrap; }
+        .btn-main-action {
+            background: linear-gradient(135deg, #d97706, #b45309); border: 1px solid var(--gold-light);
+            color: #ffffff; padding: 0.9rem 2.2rem; border-radius: 8px; font-family: var(--font-body);
+            font-weight: 800; font-size: 1rem; letter-spacing: 1px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4); transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 0.6rem; text-decoration: none;
+        }
+        .btn-main-action:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6); background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .btn-secondary-action {
+            background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-gold);
+            color: var(--gold-light); padding: 0.9rem 2.2rem; border-radius: 8px; font-family: var(--font-body);
+            font-weight: 800; font-size: 1rem; letter-spacing: 1px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 0.6rem; text-decoration: none;
+        }
+        .btn-secondary-action:hover { transform: translateY(-2px); background: rgba(245, 158, 11, 0.2); box-shadow: 0 0 15px var(--gold-glow); }
+
+        .eval-frame {
+            width: 100%; max-width: 900px; background: rgba(10, 16, 30, 0.85); border: 1px solid var(--border-gold);
+            border-radius: 12px; padding: 1.2rem 2rem; text-align: center; display: flex; flex-direction: column;
+            align-items: center; gap: 0.6rem; backdrop-filter: blur(5px); margin-top: 1rem;
+        }
+        .eval-steps-pills { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
+        .step-pill { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.3rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+        .eval-title { font-family: var(--font-title); font-size: 1.15rem; color: var(--gold-light); letter-spacing: 2px; }
+        .eval-desc { color: var(--text-muted); font-size: 0.8rem; }
+
+        .btn-eval-unlocked {
+            background: var(--orange-btn); border: 1px solid var(--gold-primary); color: var(--text-light);
+            padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.85rem; font-weight: 800;
+            display: flex; align-items: center; gap: 0.5rem; cursor: pointer; box-shadow: 0 0 15px var(--orange-glow);
+            transition: transform 0.2s ease;
+        }
+        .btn-eval-unlocked:hover { transform: scale(1.05); }
+
+        .section-nav-back { position: absolute; top: 1.5rem; left: 2.5rem; z-index: 10; }
+        .btn-back {
+            background: var(--bg-card); border: 1px solid var(--border-gold); color: var(--gold-light);
+            padding: 0.5rem 1rem; border-radius: 6px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: rgba(245, 158, 11, 0.2); }
+
+        .page-title { font-family: var(--font-title); font-size: 1.8rem; color: var(--gold-light); margin-bottom: 2rem; letter-spacing: 2px; text-align: center; }
+
+        .briefing-card {
+            background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px;
+            padding: 2.2rem 2.5rem 1.8rem 2.5rem; max-width: 900px; width: 100%; text-align: left;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+            display: flex; flex-direction: column; min-height: 520px; justify-content: space-between;
+        }
+        .briefing-title { font-family: var(--font-title); color: var(--gold-light); font-size: 1.8rem; margin-bottom: 0.8rem; text-align: center; }
+        
+        .typewriter-box { color: #e2e8f0; font-size: 0.95rem; line-height: 1.45; margin-bottom: 1rem; flex-grow: 1; font-weight: 500; }
+        .briefing-p { margin-bottom: 0.4rem; }
+
+        .cursor { display: inline-block; width: 8px; background-color: var(--gold-light); margin-left: 3px; animation: blink 0.8s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .country-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; width: 100%; max-width: 1100px; }
+        .country-card-item { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .country-card-item:hover { transform: translateY(-5px); border-color: var(--gold-primary); box-shadow: 0 0 20px var(--gold-glow); }
+        .country-flag { font-size: 3rem; margin-bottom: 0.8rem; }
+        .country-label { font-family: var(--font-title); font-size: 1.2rem; color: var(--text-light); }
+
+        .missions-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; width: 100%; max-width: 1100px; margin-bottom: 2rem; }
+        .mission-box { background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 10px; padding: 1.5rem; text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
+
+        .timer-header-card {
+            background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-gold);
+            border-radius: 8px; padding: 0.8rem 2rem; margin-bottom: 1.5rem; display: flex;
+            align-items: center; gap: 1.5rem; box-shadow: 0 0 15px var(--gold-glow); justify-content: space-between; width: 100%; max-width: 1100px;
+        }
+        .timer-display { font-family: var(--font-title); font-size: 2rem; color: var(--gold-light); letter-spacing: 2px; font-weight: 900; }
+
+        .tracker-list { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 1100px; }
+        .tracker-row-item {
+            background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 8px;
+            padding: 0.8rem 1.2rem; display: grid; grid-template-columns: 80px 180px repeat(4, 1fr) 130px 100px;
+            gap: 0.8rem; align-items: center; transition: all 0.3s ease;
+        }
+        .tracker-row-item.winner-glow {
+            border: 2px solid var(--gold-light);
+            box-shadow: 0 0 25px var(--gold-glow);
+            animation: pulseGlow 1.5s infinite alternate;
+        }
+
+        .rank-badge { font-family: var(--font-title); font-weight: 900; font-size: 1.1rem; color: var(--gold-light); text-align: center; }
+        .score-badge { font-weight: 800; font-size: 0.9rem; color: #38bdf8; text-align: center; background: rgba(56, 189, 248, 0.1); padding: 0.4rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+        .btn-start-group { background: var(--green-accent); border: none; color: #fff; padding: 0.4rem 0.8rem; border-radius: 4px; font-weight: 800; font-size: 0.75rem; cursor: pointer; }
+        .time-badge { font-size: 0.75rem; color: var(--gold-light); background: rgba(245, 158, 11, 0.15); padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-gold); }
+        .status-pill { background: var(--status-pending); border: 1px solid var(--status-pending-border); color: var(--status-pending-text); padding: 0.6rem; border-radius: 6px; text-align: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+        .status-pill.done { background: rgba(245, 158, 11, 0.15); border-color: var(--gold-primary); color: var(--gold-light); box-shadow: 0 0 10px var(--gold-glow); }
+
+        .quiz-card {
+            background: var(--bg-card); border: 1px solid var(--border-gold); border-radius: 12px;
+            padding: 2rem 2.5rem; max-width: 900px; width: 100%; text-align: left;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+        }
+
+        .quiz-option-btn {
+            background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-gold); color: #fff;
+            padding: 0.8rem 1.2rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+            text-align: left; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.8rem;
+            width: 100%; margin-bottom: 0.8rem;
+        }
+        .quiz-option-btn:hover { background: rgba(245, 158, 11, 0.2); border-color: var(--gold-light); }
+        .quiz-option-btn.selected { border-color: var(--gold-light); background: rgba(245, 158, 11, 0.3); }
+
+        .quiz-feedback { margin: 1rem 0; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .quiz-feedback.correct { color: var(--green-accent); }
+        .quiz-feedback.wrong { color: var(--red-accent); }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+        .modal-bg.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: #0f172a; border: 2px solid var(--gold-primary); border-radius: 12px; padding: 2rem; width: 480px; max-width: 90%; text-align: center; box-shadow: 0 0 25px var(--gold-glow); }
+        .modal-input { width: 100%; padding: 0.7rem; background: #080d1a; border: 1px solid var(--border-gold); border-radius: 6px; color: var(--gold-light); font-size: 1rem; text-align: center; margin: 1rem 0; outline: none; }
+
+        .celebration-card {
+            background: linear-gradient(145deg, #0f172a, #1e1b4b); border: 2px solid var(--gold-light);
+            border-radius: 20px; padding: 2.2rem 2rem; max-width: 550px; width: 90%; text-align: center;
+            box-shadow: 0 0 50px var(--gold-glow); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .reward-trophy { font-size: 4rem; animation: bounce 1.5s infinite; margin-bottom: 0.5rem; }
+        .reward-title { font-family: var(--font-title); color: var(--gold-light); font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; text-shadow: 0 0 10px var(--gold-glow); }
+        .reward-desc { color: #e2e8f0; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.2rem; }
+
+        .rempah-img-container {
+            width: 100%; max-width: 220px; height: 150px; margin: 0.8rem auto 1.2rem auto;
+            border-radius: 12px; border: 2px solid var(--gold-primary); overflow: hidden;
+            box-shadow: 0 0 15px var(--gold-glow); background: #000;
+        }
+        .rempah-img-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 15px var(--gold-glow); } 100% { box-shadow: 0 0 35px var(--gold-light); } }
+    </style>
+</head>
+<body>
+
+    <div class="compass-bg"></div>
+
+    <div id="app-container">
+
+        <div class="top-header">
+            <button class="btn-fullscreen" id="btn-sound" onclick="toggleSound()">🔊 MUSIK: ON</button>
+            <button class="btn-fullscreen" id="btn-fullscreen" onclick="toggleFullscreen()">⛶ LAYAR PENUH</button>
+        </div>
+
+        <!-- AUDIO ELEMENTS -->
+        <audio id="bg-music" loop autoplay preload="auto">
+            <source src="https://assets.mixkit.co/music/preview/mixkit-stealth-mission-1100.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="sfx-click" preload="auto">
+            <source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="sfx-loading-beep" preload="auto">
+            <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="sfx-victory" preload="auto">
+            <source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="sfx-correct" preload="auto">
+            <source src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="sfx-wrong" preload="auto">
+            <source src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3" type="audio/mpeg">
+        </audio>
+
+        <!-- LOADING SCREEN -->
+        <div id="loading-screen" class="view-section active">
+            <div class="ship-icon">🕵️‍♂️</div>
+            <h1 class="loading-title">MISSION NUSANTARA</h1>
+            <div class="loading-subtitle">SECRET AGENT TIME TRAVEL</div>
+            <p class="loading-desc">Ungkapkan Jejak Masa Lalu, Temukan Rahasia Nusantara</p>
+            <div class="progress-bar-wrap"><div id="progress-fill" class="progress-bar-fill"></div></div>
+            <div id="loading-txt" class="loading-status-text">MEMASUKKAN KODE MITRA... 0%</div>
+        </div>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard-view" class="view-section">
+            <div class="dashboard-content">
+                <div class="main-hero">
+                    <div class="hero-ship">⛵</div>
+                    <h1 class="hero-title">MISSION NUSANTARA</h1>
+                    <div class="hero-subtitle">TIME TRAVEL</div>
+                    <p class="hero-desc">Menelusuri Jejak Kedatangan Bangsa-Bangsa Barat di Nusantara</p>
+                    <div class="pill-badge">4 Bangsa • 4 Misi • 1 Rahasia</div>
+                    <div class="main-action-buttons">
+                        <button class="btn-main-action" onclick="switchView('briefing-view')">🚢 JELAJAH MISI</button>
+                        <button class="btn-main-action" onclick="switchView('pantau-view');">🧭 PANTAU PENJELAJAHAN</button>
+                    </div>
+                </div>
+
+                <div class="eval-frame">
+                    <div class="eval-steps-pills">
+                        <div class="step-pill">4 MISI</div>
+                        <span style="color: var(--text-muted); font-size: 0.7rem;">↓</span>
+                        <div class="step-pill">4 CLUE</div>
+                        <span style="color: var(--text-muted); font-size: 0.7rem;">↓</span>
+                        <div class="step-pill" style="border-color: var(--border-gold); color: var(--gold-light);">🔐 EVALUASI AKHIR</div>
+                    </div>
+                    <div class="eval-title">4 MISI UNTUK MEMBUKA 1 EVALUASI AKHIR</div>
+                    <div class="eval-desc">Selesaikan seluruh misi bersama kelompokmu untuk membuka tantangan terakhir.</div>
+                    <div id="eval-button-wrapper">
+                        <button class="btn-eval-unlocked" onclick="openEvalModal()">🔓 EVALUASI AKHIR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BRIEFING VIEW -->
+        <div id="briefing-view" class="view-section">
+            <div class="section-nav-back"><button class="btn-back" onclick="switchView('dashboard-view')">← KEMBALI</button></div>
+            <div class="briefing-card">
+                <h2 class="briefing-title">📜 BRIEFING MISI AGEN RAHASIA</h2>
+                
+                <div class="typewriter-box">
+                    <span id="briefing-text-target"></span><span class="cursor" id="briefing-cursor"></span>
+                </div>
+
+                <div class="main-action-buttons" style="margin-top: 0.5rem; padding-top: 0.5rem;">
+                    <a href="https://drive.google.com/file/d/1pV5xg39vW3N5pzzwpYTQRBIDkig2sD9W/view?usp=sharing" target="_blank" class="btn-secondary-action">
+                        📥 DOWNLOAD MODUL
+                    </a>
+                    <button class="btn-main-action" onclick="switchView('jelajah-view')">
+                        LANJUTKAN KE PILIH NEGARA ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- JELAJAH VIEW -->
+        <div id="jelajah-view" class="view-section">
+            <div class="section-nav-back"><button class="btn-back" onclick="switchView('briefing-view')">← KEMBALI</button></div>
+            <h2 class="page-title">PILIH NEGARAMU</h2>
+            <div class="country-cards-grid">
+                <div class="country-card-item" onclick="openCountryDetail('portugis')"><div class="country-flag">🇵🇹</div><div class="country-label">PORTUGIS</div></div>
+                <div class="country-card-item" onclick="openCountryDetail('spanyol')"><div class="country-flag">🇪🇸</div><div class="country-label">SPANYOL</div></div>
+                <div class="country-card-item" onclick="openCountryDetail('belanda')"><div class="country-flag">🇳🇱</div><div class="country-label">BELANDA</div></div>
+                <div class="country-card-item" onclick="openCountryDetail('inggris')"><div class="country-flag">🇬🇧</div><div class="country-label">INGGRIS</div></div>
+            </div>
+        </div>
+
+        <!-- COUNTRY DETAIL VIEW -->
+        <div id="country-detail-view" class="view-section">
+            <div class="section-nav-back"><button class="btn-back" onclick="switchView('jelajah-view')">← KEMBALI</button></div>
+            <h2 id="country-title" class="page-title">PETUALANGAN PORTUGIS</h2>
+            <div class="missions-row">
+                <div class="mission-box">
+                    <h3 style="color: var(--gold-light);">MISI 1</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Jalur Pelayaran Samudra</p>
+                    <button class="btn-main-action" style="padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="launchMission(1)">KERTAS MISI ▶</button>
+                </div>
+                <div class="mission-box">
+                    <h3 style="color: var(--gold-light);">MISI 2</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Jejak Kedatangan</p>
+                    <button class="btn-main-action" style="padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="launchMission(2)">KERTAS MISI ▶</button>
+                </div>
+                <div class="mission-box">
+                    <h3 style="color: var(--gold-light);">MISI 3</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Buktikan Jejakmu</p>
+                    <button class="btn-main-action" style="padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="launchMission(3)">KERTAS MISI ▶</button>
+                </div>
+                <div class="mission-box">
+                    <h3 style="color: var(--gold-light);">MISI 4</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Rahasia Sang Penjelajah</p>
+                    <button class="btn-main-action" style="padding: 0.5rem 1rem; font-size: 0.8rem;" onclick="launchMission(4)">KERTAS MISI ▶</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTAU VIEW -->
+        <div id="pantau-view" class="view-section">
+            <div class="section-nav-back"><button class="btn-back" onclick="switchView('dashboard-view')">← KEMBALI</button></div>
+            <h2 class="page-title" style="margin-bottom: 0.8rem;">PANTAU PENJELAJAHAN KELOMPOK</h2>
+            <div class="timer-header-card">
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700;">⏱️ WAKTU MAKSIMAL: 30:00 (Misi Selesai ≤10 Menit = +20 Bonus Poin/Misi)</div>
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <span style="font-size: 0.85rem; color: var(--gold-light); font-weight: 700;">WAKTU:</span>
+                    <div id="timer-display" class="timer-display">00:00</div>
+                </div>
+            </div>
+            <div id="tracker-board" class="tracker-list"></div>
+        </div>
+
+        <!-- EVALUATION QUIZ VIEW -->
+        <div id="quiz-view" class="view-section">
+            <div class="quiz-card">
+                <div class="timer-header-card" style="justify-content: space-between; margin-bottom: 0.8rem; padding: 0.5rem 1.5rem;">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--gold-light);" id="quiz-question-number">SOAL 1 DARI 5</div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.8rem;">⏱️ WAKTU SOAL:</span>
+                        <span id="quiz-timer" class="timer-display" style="font-size: 1.3rem;">10:00</span>
+                    </div>
+                </div>
+
+                <div id="quiz-container">
+                    <div id="quiz-question-text" style="font-size: 0.95rem; line-height: 1.5; text-align: left; margin-bottom: 1rem;"></div>
+                    <div id="quiz-options-container"></div>
+                    <div id="quiz-feedback" class="quiz-feedback" style="margin: 0.5rem 0;"></div>
+                    
+                    <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+                        <button id="btn-next-quiz" class="btn-main-action" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;" onclick="nextQuestion()">LANJUT ▶</button>
+                    </div>
+                </div>
+
+                <div id="quiz-result-container" style="display: none; text-align: center; padding: 2rem 0;">
+                    <h2 style="font-family: var(--font-title); color: var(--gold-light); font-size: 2.2rem; margin-bottom: 1rem;">🎉 EVALUASI SELESAI!</h2>
+                    <p style="font-size: 1.2rem; color: #fff; margin-bottom: 1.5rem;" id="quiz-final-score"></p>
+                    <button class="btn-main-action" style="margin: 0 auto;" onclick="switchView('dashboard-view')">KEMBALI KE DASHBOARD</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- INPUT MODAL POPUP -->
+    <div id="modal-popup" class="modal-bg">
+        <div class="modal-content">
+            <h3 id="modal-title" style="font-family: var(--font-title); color: var(--gold-light);">🔐 MASUKKAN KEYWORD</h3>
+            <p id="modal-subinstruction" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4;"></p>
+            <input type="text" id="modal-input" class="modal-input" placeholder="Ketik kata kunci di sini..." autocomplete="off" onkeyup="handleModalKeyUp(event)">
+            <div id="modal-err" style="color: #ef4444; font-size: 0.9rem; display: none; margin-bottom: 0.8rem; text-align: center; font-weight: 700; line-height: 1.4;"></div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                <button class="btn-back" onclick="closeModal()">BATAL</button>
+                <button class="btn-main-action" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="verifyKeyword()">VERIFIKASI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REWARD & CELEBRATION POPUP FOR COUNTRY / EVAL -->
+    <div id="celebration-modal" class="modal-bg">
+        <div class="celebration-card">
+            <div class="reward-trophy" id="celebration-trophy">🏆🎉🎁</div>
+            <h2 class="reward-title" id="celebration-title">LUAR BIASA!</h2>
+            
+            <div id="rempah-img-wrap" class="rempah-img-container" style="display:none;">
+                <img id="rempah-img" src="" alt="Rempah Indonesia">
+            </div>
+
+            <p class="reward-desc" id="celebration-desc"></p>
+            
+            <div id="celebration-action-container" style="display: flex; flex-direction: column; align-items: center; gap: 0.8rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        const GAME_CONFIG = {
+            MISSION_LINKS: {
+                1: "https://rozasilvia81-collab.github.io/Kertas-Misi-1-Jalur-Pelayaran/",
+                2: "https://rozasilvia81-collab.github.io/Kertas-Misi-2-Jejak-Kedatangan/",
+                3: "https://rozasilvia81-collab.github.io/Kertas-Misi-3-Buktikan-Jejak-Mu/",
+                4: "https://rozasilvia81-collab.github.io/Kertas-Misi-4-Rahasia-Sang-Penjelajah/"
+            },
+            REWARD_LINKS: {
+                portugis: "https://photos.google.com/photo/AF1QipMPqccii9h6Ev9w1zw5w4m0lcPp0aRMEb1eAVtV",
+                spanyol:  "https://photos.google.com/photo/AF1QipOABc3vgFwZ3fK9lUV9c42TUm_CmaBczdtTL5Xu",
+                belanda:  "https://photos.google.com/photo/AF1QipORoKFQ7Pzp1NRoCFU1yPSah3x5NCjJFQFkDoRq",
+                inggris:  "https://photos.google.com/photo/AF1QipOJCK2_43nF-02xJJBkA24GXo_Q-NyRaCkcGvAs"
+            },
+            REMPAH_DATA: {
+                portugis: {
+                    pass: "cengkeh",
+                    name: "Cengkeh",
+                    img: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjnPYFDBRDMuIbotHYbTDDHZnoFjnrSjGAAowsmE8KAqsUkmubCa3U0Bu2rAxXZY_Y9_MRhEsJ_wY8waR1Tdk3E7qh2ax0KyK8Vz_vS2pm9l_XFHo1wJvTiz6_o4PfYcQlCXvjaFmiw-qXWOvTXiw7JAou87uPUXBgi5eqOiBehrXvYf5UyQfDzAqmt/s1200/32c836ab70a22dc4a5d535d90c4807e6.jpg"
+                },
+                spanyol: {
+                    pass: "pala",
+                    name: "Pala",
+                    img: "https://assets.pikiran-rakyat.com/crop/0x0:0x0/720x0/webp/photo/2024/03/29/2438504291.jpg"
+                },
+                belanda: {
+                    pass: "lada",
+                    name: "Lada",
+                    img: "https://th.bing.com/th/id/OIP.vC5bNc6D-LF2hBaEUlJByAHaEK"
+                },
+                inggris: {
+                    pass: "kayu manis",
+                    name: "Kayu Manis",
+                    img: "https://img.lazcdn.com/g/p/4904f5919d39a8aadb9b750b4457fd78.jpg_720x720q80.jpg"
+                }
+            },
+            KEYWORDS: {
+                portugis: { 1: "NG", 2: "CE", 3: "KE", 4: "H" },
+                spanyol:  { 1: "L", 2: "A", 3: "P", 4: "A" },
+                belanda:  { 1: "D", 2: "L", 3: "A", 4: "A" },
+                inggris:  { 1: "YU", 2: "NIS", 3: "MA", 4: "KA" }
+            },
+            EVALUATION: {
+                KEYWORD: "cengkeh pala lada kayu manis"
+            }
+        };
+
+        const BRIEFING_PARAGRAPHS = [
+            "Halo para Agen Muda Rahasia! Selamat datang di mesin penjelajah waktu Mission Nusantara.",
+            "Kalian telah terpilih untuk menjalankan sebuah misi penting: menelusuri sejarah kedatangan bangsa-bangsa Barat di Nusantara.",
+            "Aturan Main Penjelajahan:",
+            "1. Di setiap negara yang kalian pilih, terdapat 4 Buah Misi Rahasia.",
+            "2. Setiap kali kalian berhasil menyelesaikan 1 Misi, kalian akan mendapatkan potongan 1 atau 2 huruf rahasia.",
+            "3. Susun seluruh huruf dari 4 Misi tersebut untuk membentuk 1 Kata Kunci Rahasia Negara tersebut.",
+            "4. Kumpulkan seluruh Kata Kunci dari 4 Negara (Portugis, Spanyol, Belanda, dan Inggris), lalu susun menjadi Kata Kunci Utama untuk membuka Tantangan Evaluasi Akhir!",
+            "Persiapkan tim kalian, unduh modul panduan, dan mulailah penjelajahan sejarah sekarang juga!"
+        ];
+
+        const QUIZ_QUESTIONS = [
+            {
+                q: `<div style="background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-gold); border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 0.8rem;">
+                        <div style="font-family: var(--font-title); font-size: 0.85rem; font-weight: 800; color: #fbbf24; margin-bottom: 0.5rem; text-align: center;">
+                            📊 GRAFIK DURASI KEKUASAAN BANGSA EROPA DI INDONESIA
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <!-- Sumbu Y -->
+                            <div style="display: flex; flex-direction: column; justify-content: space-between; height: 95px; font-size: 0.65rem; color: #94a3b8; font-weight: 700; padding-right: 0.2rem; text-align: right; width: 45px; padding-bottom: 2px;">
+                                <span>350 Thn</span>
+                                <span>250 Thn</span>
+                                <span>150 Thn</span>
+                                <span>50 Thn</span>
+                                <span>0 Thn</span>
+                            </div>
+                            <!-- Area Grafik & Sumbu X -->
+                            <div style="flex-grow: 1;">
+                                <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 95px; border-left: 2px solid #f59e0b; border-bottom: 2px solid #f59e0b; padding: 0 0.5rem;">
+                                    <!-- Portugis (85 Thn) -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; width: 50px;">
+                                        <span style="font-size: 0.7rem; font-weight: 800; color: #fbbf24; margin-bottom: 2px;">85</span>
+                                        <div style="width: 24px; height: 23px; background: linear-gradient(180deg, #fbbf24, #d97706); border-radius: 3px 3px 0 0;"></div>
+                                    </div>
+                                    <!-- Spanyol (149 Thn) -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; width: 50px;">
+                                        <span style="font-size: 0.7rem; font-weight: 800; color: #fbbf24; margin-bottom: 2px;">149</span>
+                                        <div style="width: 24px; height: 40px; background: linear-gradient(180deg, #fbbf24, #d97706); border-radius: 3px 3px 0 0;"></div>
+                                    </div>
+                                    <!-- Belanda (340 Thn) -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; width: 50px;">
+                                        <span style="font-size: 0.7rem; font-weight: 800; color: #fbbf24; margin-bottom: 2px;">340</span>
+                                        <div style="width: 24px; height: 92px; background: linear-gradient(180deg, #fbbf24, #d97706); border-radius: 3px 3px 0 0;"></div>
+                                    </div>
+                                    <!-- Inggris (5 Thn) -->
+                                    <div style="display: flex; flex-direction: column; align-items: center; width: 50px;">
+                                        <span style="font-size: 0.7rem; font-weight: 800; color: #fbbf24; margin-bottom: 2px;">5</span>
+                                        <div style="width: 24px; height: 2px; background: linear-gradient(180deg, #fbbf24, #d97706); border-radius: 3px 3px 0 0;"></div>
+                                    </div>
+                                </div>
+                                <!-- Nama Negara di Bawah Garis Sumbu X -->
+                                <div style="display: flex; justify-content: space-around; padding-top: 5px; padding-left: 0.5rem; padding-right: 0.5rem;">
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: #fff; width: 50px; text-align: center;">PT Portugis</span>
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: #fff; width: 50px; text-align: center;">ES Spanyol</span>
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: #fff; width: 50px; text-align: center;">NL Belanda</span>
+                                    <span style="font-size: 0.68rem; font-weight: 700; color: #fff; width: 50px; text-align: center;">GB Inggris</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <b>Berdasarkan grafik durasi kekuasaan bangsa Eropa di atas, manakah pernyataan yang paling tepat?</b>`,
+                options: [
+                    "A. Inggris adalah negara yang paling lama menguasai Indonesia",
+                    "B. Portugis menguasai Indonesia selama 85 tahun, lebih lama dari Inggris tetapi tidak lebih lama dari Belanda",
+                    "C. Spanyol menjajah Indonesia lebih lama dibandingkan Belanda",
+                    "D. Inggris menguasai Indonesia lebih lama daripada Spanyol"
+                ],
+                answer: 1
+            },
+            {
+                q: "Kedatangan bangsa Eropa mengenalkan ilmu pengetahuan dan teknologi baru, tetapi juga membawa penderitaan bagi rakyat. Kesimpulannya adalah kedatangan bangsa Eropa ....",
+                options: [
+                    "A. Menguntungkan dan membahagiakan seluruh rakyat Indonesia",
+                    "B. Membawa ilmu pengetahuan baru, tetapi juga memberikan penderitaan bagi rakyat",
+                    "C. Sama sekali tidak membawa perubahan apa pun di Indonesia",
+                    "D. Hanya bertujuan jalan-jalan dan liburan di Nusantara"
+                ],
+                answer: 1
+            },
+            {
+                q: "Vasco da Gama dari Portugis berlayar sangat jauh hingga tiba di Malaka pada tahun 1498. Alasan utama para penjelajah berani berlayar sejauh itu adalah ....",
+                options: [
+                    "A. Mencari daerah baru yang menjual rempah-rempah",
+                    "B. Ingin pindah rumah dan tinggal selamanya di Asia",
+                    "C. Mencari bantuan tentara dari kerajaan di Nusantara",
+                    "D. Melarikan diri dari negara asal mereka"
+                ],
+                answer: 0
+            },
+            {
+                q: "<b>Benar atau Salah:</b><br>Bangsa Belanda pertama kali tiba di Banten pada tahun 1596, lalu mendirikan VOC pada tahun 1602 untuk menguasai perdagangan rempah-rempah.",
+                options: ["Benar", "Salah"],
+                answer: 0
+            },
+            {
+                q: "<b>Benar atau Salah:</b><br>Inggris yang tiba di Aceh pada tahun 1613 harus menandatangani Perjanjian Bungaya (1667) dan meninggalkan Indonesia setelah kalah perang melawan Belanda.",
+                options: ["Benar", "Salah"],
+                answer: 0
+            }
+        ];
+
+        let gameState = {
+            portugis: { missions: [false, false, false, false], started: false, finishTime: null, durationSeconds: null, score: 0 },
+            spanyol:  { missions: [false, false, false, false], started: false, finishTime: null, durationSeconds: null, score: 0 },
+            belanda:  { missions: [false, false, false, false], started: false, finishTime: null, durationSeconds: null, score: 0 },
+            inggris:  { missions: [false, false, false, false], started: false, finishTime: null, durationSeconds: null, score: 0 }
+        };
+
+        let activeCountry = null;
+        let activeTarget = null;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let isAudioMuted = false;
+        let typewriterTimeout = null;
+
+        let currentQuestionIdx = 0;
+        let userAnswers = {};
+        let quizTimerSeconds = 600;
+        let quizTimerInterval = null;
+        
+        let pendingCelebrationCountry = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            localStorage.removeItem('mn_timetravel_v2');
+            
+            playMusicOnce();
+
+            document.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('button, a, .country-card-item, .status-pill, .quiz-option-btn, input')) {
+                    playClickSound();
+                }
+                playMusicOnce();
+            }, { once: false });
+
+            startAutoLoading();
+        });
+
+        function playClickSound() {
+            if (!isAudioMuted) {
+                const clickSfx = document.getElementById('sfx-click');
+                if (clickSfx) {
+                    clickSfx.currentTime = 0;
+                    clickSfx.play().catch(() => {});
+                }
+            }
+        }
+
+        function playMusicOnce() {
+            if (!isAudioMuted) {
+                const music = document.getElementById('bg-music');
+                if (music && music.paused) {
+                    music.volume = 0.6;
+                    music.play().catch(() => {});
+                }
+            }
+        }
+
+        function playSFX(id) {
+            if (!isAudioMuted) {
+                const sfx = document.getElementById(id);
+                if (sfx) {
+                    sfx.currentTime = 0;
+                    sfx.play().catch(() => {});
+                }
+            }
+        }
+
+        function toggleSound() {
+            const music = document.getElementById('bg-music');
+            const btn = document.getElementById('btn-sound');
+            if (isAudioMuted) {
+                isAudioMuted = false;
+                music.play();
+                btn.innerText = '🔊 MUSIK: ON';
+            } else {
+                isAudioMuted = true;
+                music.pause();
+                btn.innerText = '🔇 MUSIK: OFF';
+            }
+        }
+
+        function triggerGrandCelebration() {
+            if (typeof confetti === 'function') {
+                let duration = 3 * 1000;
+                let end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 7,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 }
+                    });
+                    confetti({
+                        particleCount: 7,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 }
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            }
+        }
+
+        function startAutoLoading() {
+            let progress = 0;
+            const fill = document.getElementById('progress-fill');
+            const txt = document.getElementById('loading-txt');
+
+            const timer = setInterval(() => {
+                progress += Math.floor(Math.random() * 10) + 5;
+                
+                playSFX('sfx-loading-beep');
+
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer);
+                    txt.innerText = "PETUALANGAN SIAP!";
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').classList.remove('active');
+                        switchView('dashboard-view');
+                        renderTracker();
+                    }, 800);
+                }
+                fill.style.width = progress + '%';
+                if (progress < 100) txt.innerText = `MEMASUKKAN KODE MITRA... ${progress}%`;
+            }, 200);
+        }
+
+        function switchView(id) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            if (id === 'briefing-view') {
+                startBriefingTypewriter();
+            } else if (id === 'pantau-view') {
+                renderTracker();
+                checkPendingCelebration();
+            }
+        }
+
+        function startBriefingTypewriter() {
+            const target = document.getElementById('briefing-text-target');
+            target.innerHTML = '';
+            
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+
+            let formattedText = BRIEFING_PARAGRAPHS.map(p => `<div class="briefing-p">${p}</div>`).join('');
+            let charIndex = 0;
+
+            function typeChar() {
+                if (charIndex < formattedText.length) {
+                    let tagMatch = formattedText.substr(charIndex).match(/^<[^>]+>/);
+                    if (tagMatch) {
+                        target.innerHTML += tagMatch[0];
+                        charIndex += tagMatch[0].length;
+                    } else {
+                        target.innerHTML += formattedText.charAt(charIndex);
+                        charIndex++;
+                    }
+                    typewriterTimeout = setTimeout(typeChar, 18);
+                }
+            }
+
+            typeChar();
+        }
+
+        function toggleFullscreen() {
+            const btn = document.getElementById('btn-fullscreen');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                btn.innerText = '⛶ KELUAR LAYAR PENUH';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    btn.innerText = '⛶ LAYAR PENUH';
+                }
+            }
+        }
+
+        function startGlobalTimer() {
+            if (!timerInterval) {
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                    const s = String(timerSeconds % 60).padStart(2, '0');
+                    document.getElementById('timer-display').innerText = `${m}:${s}`;
+                }, 1000);
+            }
+        }
+
+        function formatCurrentTime() {
+            const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+            const s = String(timerSeconds % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function openCountryDetail(country) {
+            activeCountry = country;
+            const names = { portugis: 'PORTUGIS 🇵🇹', spanyol: 'SPANYOL 🇪🇸', belanda: 'BELANDA 🇳🇱', inggris: 'INGGRIS 🇬🇧' };
+            document.getElementById('country-title').innerText = `PETUALANGAN ${names[country]}`;
+            switchView('country-detail-view');
+        }
+
+        function launchMission(mIdx) {
+            if (GAME_CONFIG.MISSION_LINKS[mIdx]) {
+                window.open(GAME_CONFIG.MISSION_LINKS[mIdx], '_blank');
+            }
+        }
+
+        function startGroup(cId) {
+            gameState[cId].started = true;
+            startGlobalTimer();
+            renderTracker();
+        }
+
+        function renderTracker() {
+            const board = document.getElementById('tracker-board');
+            board.innerHTML = '';
+            
+            let list = [
+                { id: 'portugis', name: 'PORTUGIS', flag: '🇵🇹' },
+                { id: 'spanyol', name: 'SPANYOL', flag: '🇪🇸' },
+                { id: 'belanda', name: 'BELANDA', flag: '🇳🇱' },
+                { id: 'inggris', name: 'INGGRIS', flag: '🇬🇧' }
+            ];
+
+            let sortedList = [...list].sort((a, b) => {
+                let gA = gameState[a.id];
+                let gB = gameState[b.id];
+                if (gB.score !== gA.score) return gB.score - gA.score;
+                if (gA.durationSeconds !== null && gB.durationSeconds !== null) {
+                    return gA.durationSeconds - gB.durationSeconds;
+                }
+                return 0;
+            });
+
+            list.forEach(c => {
+                const row = document.createElement('div');
+                row.className = 'tracker-row-item';
+                
+                if (pendingCelebrationCountry === c.id) {
+                    row.classList.add('winner-glow');
+                }
+
+                const gData = gameState[c.id];
+                
+                let rankIdx = sortedList.findIndex(item => item.id === c.id);
+                let rankBadge = '-';
+                if (gData.finishTime) {
+                    if (rankIdx === 0) rankBadge = '🥇 JUARA 1';
+                    else if (rankIdx === 1) rankBadge = '🥈 JUARA 2';
+                    else if (rankIdx === 2) rankBadge = '🥉 JUARA 3';
+                    else rankBadge = `🏅 JUARA ${rankIdx + 1}`;
+                }
+
+                let startCol = !gData.started ? `<button class="btn-start-group" onclick="startGroup('${c.id}')">▶ START</button>` :
+                    (gData.finishTime ? `<span class="time-badge">⏱️ ${gData.finishTime}</span>` : `<span class="time-badge" style="border-color:var(--green-accent); color:var(--green-accent);">BERJALAN</span>`);
+
+                let html = `<div class="rank-badge">${rankBadge}</div>`;
+                html += `<div class="tracker-country-name"><span>${c.flag}</span><div><div><b>${c.name}</b></div><div style="margin-top:0.2rem">${startCol}</div></div></div>`;
+                
+                for (let i = 0; i < 4; i++) {
+                    const done = gData.missions[i];
+                    html += `<div class="status-pill ${done ? 'done' : ''}" onclick="openModal('${c.id}', ${i})">${done ? '🟡 ✓ MISI ' + (i+1) : '🔵 MISI ' + (i+1)}</div>`;
+                }
+                
+                const allDone = gData.missions.every(v => v === true);
+                html += `<div class="status-pill ${allDone ? 'done' : ''}" style="${allDone ? '' : 'opacity:0.4; cursor:not-allowed;'}" onclick="${allDone ? "openCountryRewardModal('" + c.id + "')" : ''}">${allDone ? '🎁 HADIAH' : '🔒 HADIAH'}</div>`;
+                html += `<div class="score-badge">${gData.score} PTS</div>`;
+                
+                row.innerHTML = html;
+                board.appendChild(row);
+            });
+        }
+
+        function checkPendingCelebration() {
+            if (pendingCelebrationCountry) {
+                const cId = pendingCelebrationCountry;
+                const countryName = cId.toUpperCase();
+                
+                let list = ['portugis', 'spanyol', 'belanda', 'inggris'];
+                let sortedList = [...list].sort((a, b) => {
+                    let gA = gameState[a];
+                    let gB = gameState[b];
+                    if (gB.score !== gA.score) return gB.score - gA.score;
+                    if (gA.durationSeconds !== null && gB.durationSeconds !== null) {
+                        return gA.durationSeconds - gB.durationSeconds;
+                    }
+                    return 0;
+                });
+
+                let rankIdx = sortedList.findIndex(id => id === cId);
+                let rankTitles = ['🥇 JUARA PERTAMA!', '🥈 JUARA KEDUA!', '🥉 JUARA KETIGA!', `🏅 JUARA KELOMPOK KE-${rankIdx + 1}!`];
+                let rankTitle = rankTitles[rankIdx] || 'SELEBRASI PENJELAJAH!';
+
+                playSFX('sfx-victory');
+                triggerGrandCelebration();
+
+                setTimeout(() => {
+                    document.getElementById('celebration-trophy').innerText = rankIdx === 0 ? '👑🏆🎆' : '🎉🏆🎊';
+                    document.getElementById('celebration-title').innerText = rankTitle;
+                    document.getElementById('rempah-img-wrap').style.display = 'none';
+                    document.getElementById('celebration-desc').innerHTML = `
+                        ✨ <b>SELEBRASI MERIAH UNTUK KELOMPOK ${countryName}!</b> ✨<br>
+                        Selamat telah berhasil menyelesaikan seluruh Misi dan Membuka Hadiah Rahasia!<br>
+                        Kalian berada di <b>Peringkat Ke-${rankIdx + 1}</b> papan penjelajahan dengan <b>${gameState[cId].score} Poin</b>!
+                    `;
+
+                    const actionWrap = document.getElementById('celebration-action-container');
+                    actionWrap.innerHTML = `
+                        <button class="btn-main-action" onclick="closeBoardCelebration()" style="padding: 0.9rem 1.8rem; font-size: 1rem;">
+                            👏 TERIMA KASIH (LANJUTKAN PANTAU) ▶
+                        </button>
+                    `;
+
+                    document.getElementById('celebration-modal').classList.add('active');
+                }, 400);
+            }
+        }
+
+        function closeBoardCelebration() {
+            document.getElementById('celebration-modal').classList.remove('active');
+            pendingCelebrationCountry = null;
+            renderTracker();
+        }
+
+        function openModal(country, mIdx) {
+            activeTarget = { type: 'MISSION', country, mIdx };
+            const names = { portugis: 'PORTUGIS', spanyol: 'SPANYOL', belanda: 'BELANDA', inggris: 'INGGRIS' };
+            document.getElementById('modal-title').innerText = `🔐 ${names[country]} — MISI ${mIdx + 1}`;
+            document.getElementById('modal-subinstruction').innerText = "Masukkan huruf rahasia yang kalian dapatkan dari Kertas Misi ini:";
+            document.getElementById('modal-input').value = '';
+            document.getElementById('modal-err').style.display = 'none';
+            document.getElementById('modal-popup').classList.add('active');
+            setTimeout(() => document.getElementById('modal-input').focus(), 100);
+        }
+
+        function openCountryRewardModal(country) {
+            activeTarget = { type: 'COUNTRY_REWARD', country };
+            const names = { portugis: 'PORTUGIS', spanyol: 'SPANYOL', belanda: 'BELANDA', inggris: 'INGGRIS' };
+            document.getElementById('modal-title').innerText = `🎁 KLAIM HADIAH ${names[country]}`;
+            document.getElementById('modal-subinstruction').innerText = "Susun semua kata kunci yang kalian dapatkan dari misi 1 s/d 4, ini adalah salah satu rempah khas Indonesia:";
+            document.getElementById('modal-input').value = '';
+            document.getElementById('modal-err').style.display = 'none';
+            document.getElementById('modal-popup').classList.add('active');
+            setTimeout(() => document.getElementById('modal-input').focus(), 100);
+        }
+
+        function openEvalModal() {
+            activeTarget = { type: 'EVAL' };
+            document.getElementById('modal-title').innerText = '🔓 EVALUASI AKHIR';
+            document.getElementById('modal-subinstruction').innerText = "Masukkan 4 nama rempah dari seluruh negara (urut: Portugis, Spanyol, Belanda, Inggris) dipisahkan spasi:";
+            document.getElementById('modal-input').value = '';
+            document.getElementById('modal-err').style.display = 'none';
+            document.getElementById('modal-popup').classList.add('active');
+            setTimeout(() => document.getElementById('modal-input').focus(), 100);
+        }
+
+        function closeModal() {
+            document.getElementById('modal-popup').classList.remove('active');
+            activeTarget = null;
+        }
+
+        function closeCelebrationModal() {
+            document.getElementById('celebration-modal').classList.remove('active');
+            switchView('pantau-view');
+        }
+
+        function handleModalKeyUp(event) {
+            if (event.key === 'Enter') verifyKeyword();
+        }
+
+        function verifyKeyword() {
+            const rawVal = document.getElementById('modal-input').value;
+            const val = rawVal.trim().toLowerCase();
+            const err = document.getElementById('modal-err');
+
+            if (!activeTarget) return;
+
+            if (activeTarget.type === 'COUNTRY_REWARD') {
+                const country = activeTarget.country;
+                const rempahInfo = GAME_CONFIG.REMPAH_DATA[country];
+                
+                if (val === rempahInfo.pass) {
+                    closeModal();
+                    playSFX('sfx-victory');
+                    triggerGrandCelebration();
+
+                    if (!gameState[country].finishTime) {
+                        gameState[country].finishTime = formatCurrentTime();
+                        gameState[country].durationSeconds = timerSeconds;
+                    }
+
+                    pendingCelebrationCountry = country;
+
+                    document.getElementById('celebration-trophy').innerText = '🏆🎉🎁';
+                    document.getElementById('celebration-title').innerText = `SELEBRASI KEMENANGAN ${country.toUpperCase()}!`;
+                    
+                    const imgWrap = document.getElementById('rempah-img-wrap');
+                    const img = document.getElementById('rempah-img');
+                    img.src = rempahInfo.img;
+                    imgWrap.style.display = 'block';
+
+                    document.getElementById('celebration-desc').innerHTML = `
+                        💖 <b>Selamat Para Agen Muda Hebat!</b> 💖<br>
+                        Kalian telah membuktikan kegigihan luar biasa! Password <b>"${rempahInfo.name.toUpperCase()}"</b> Benar!<br>
+                        Total Poin Kelompok: <b>${gameState[country].score} PTS</b>!
+                    `;
+
+                    const actionWrap = document.getElementById('celebration-action-container');
+                    actionWrap.innerHTML = `
+                        <a href="${GAME_CONFIG.REWARD_LINKS[country]}" target="_blank" class="btn-main-action" style="padding: 0.9rem 1.8rem; font-size: 1rem;">
+                            🎁 AMBIL HADIAHMU (FUN FACT) ▶
+                        </a>
+                        <button class="btn-secondary-action" onclick="closeCelebrationModal()" style="padding: 0.7rem 1.5rem; font-size: 0.85rem; margin-top: 0.2rem;">
+                            ← KEMBALI KE PANTAU PENJELAJAHAN
+                        </button>
+                    `;
+
+                    document.getElementById('celebration-modal').classList.add('active');
+
+                } else {
+                    playSFX('sfx-wrong');
+                    err.innerHTML = "❌ TETOT! Password Gagal!<br>Susun kata kunci rempah dengan benar!";
+                    err.style.display = 'block';
+                }
+            } 
+            else if (activeTarget.type === 'MISSION') {
+                const { country, mIdx } = activeTarget;
+                const targetKeyword = GAME_CONFIG.KEYWORDS[country][mIdx + 1].toLowerCase();
+                if (val === targetKeyword) {
+                    playSFX('sfx-correct');
+                    
+                    if (!gameState[country].missions[mIdx]) {
+                        gameState[country].missions[mIdx] = true;
+                        
+                        let missionScore = 25;
+                        if (timerSeconds <= 600) {
+                            missionScore += 20;
+                        }
+                        gameState[country].score += missionScore;
+                    }
+
+                    renderTracker();
+                    closeModal();
+                } else {
+                    playSFX('sfx-wrong');
+                    err.innerHTML = "❌ TETOT! Huruf rahasia belum tepat!";
+                    err.style.display = 'block';
+                }
+            }
+            else if (activeTarget.type === 'EVAL') {
+                if (val === GAME_CONFIG.EVALUATION.KEYWORD) {
+                    closeModal();
+                    playSFX('sfx-victory');
+                    triggerGrandCelebration();
+
+                    document.getElementById('celebration-trophy').innerText = '🌟🕵️‍♂️🏆';
+                    document.getElementById('celebration-title').innerText = 'SELAMAT! EVALUASI AKHIR TERBUKA!';
+                    document.getElementById('rempah-img-wrap').style.display = 'none';
+                    document.getElementById('celebration-desc').innerHTML = `
+                        💖 <b>Luar Biasa Agen Utama!</b> 💖<br>
+                        Kalian berhasil menyusun seluruh kata kunci rempah Nusantara. Siapkan tim kalian untuk tantangan kuis terakhir!
+                    `;
+
+                    const actionWrap = document.getElementById('celebration-action-container');
+                    actionWrap.innerHTML = `
+                        <button class="btn-main-action" onclick="startQuizFromCelebration()" style="padding: 0.9rem 1.8rem; font-size: 1rem;">
+                            🚀 MULAI KERJAKAN SOAL EVALUASI ▶
+                        </button>
+                    `;
+
+                    document.getElementById('celebration-modal').classList.add('active');
+                } else {
+                    playSFX('sfx-wrong');
+                    err.innerHTML = "❌ TETOT! Kata kunci evaluasi belum tepat!";
+                    err.style.display = 'block';
+                }
+            }
+        }
+
+        function startQuizFromCelebration() {
+            document.getElementById('celebration-modal').classList.remove('active');
+            startQuiz();
+        }
+
+        function startQuiz() {
+            currentQuestionIdx = 0;
+            userAnswers = {};
+            quizTimerSeconds = 600;
+            document.getElementById('quiz-container').style.display = 'block';
+            document.getElementById('quiz-result-container').style.display = 'none';
+            switchView('quiz-view');
+            renderQuestion();
+            startQuizTimer();
+        }
+
+        function startQuizTimer() {
+            clearInterval(quizTimerInterval);
+            quizTimerInterval = setInterval(() => {
+                quizTimerSeconds--;
+                const m = String(Math.floor(quizTimerSeconds / 60)).padStart(2, '0');
+                const s = String(quizTimerSeconds % 60).padStart(2, '0');
+                document.getElementById('quiz-timer').innerText = `${m}:${s}`;
+
+                if (quizTimerSeconds <= 0) {
+                    clearInterval(quizTimerInterval);
+                    finishQuiz();
+                }
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            const qData = QUIZ_QUESTIONS[currentQuestionIdx];
+            document.getElementById('quiz-question-number').innerText = `SOAL ${currentQuestionIdx + 1} DARI ${QUIZ_QUESTIONS.length}`;
+            document.getElementById('quiz-question-text').innerHTML = qData.q;
+
+            const optContainer = document.getElementById('quiz-options-container');
+            optContainer.innerHTML = '';
+
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.innerHTML = '';
+            feedback.className = 'quiz-feedback';
+
+            qData.options.forEach((optText, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option-btn';
+                if (userAnswers[currentQuestionIdx] === optIdx) {
+                    btn.classList.add('selected');
+                }
+                btn.innerHTML = optText;
+                btn.onclick = () => selectOption(optIdx);
+                optContainer.appendChild(btn);
+            });
+
+            if (userAnswers.hasOwnProperty(currentQuestionIdx)) {
+                const selected = userAnswers[currentQuestionIdx];
+                if (selected === qData.answer) {
+                    feedback.innerHTML = '🎉 Jawaban Benar!';
+                    feedback.className = 'quiz-feedback correct';
+                } else {
+                    feedback.innerHTML = '❌ Jawaban Salah!';
+                    feedback.className = 'quiz-feedback wrong';
+                }
+            }
+        }
+
+        function selectOption(optIdx) {
+            userAnswers[currentQuestionIdx] = optIdx;
+            const qData = QUIZ_QUESTIONS[currentQuestionIdx];
+            if (optIdx === qData.answer) {
+                playSFX('sfx-correct');
+            } else {
+                playSFX('sfx-wrong');
+            }
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIdx < QUIZ_QUESTIONS.length - 1) {
+                currentQuestionIdx++;
+                renderQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            clearInterval(quizTimerInterval);
+            playSFX('sfx-victory');
+            triggerGrandCelebration();
+
+            let score = 0;
+            QUIZ_QUESTIONS.forEach((q, idx) => {
+                if (userAnswers[idx] === q.answer) score += 20;
+            });
+
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('quiz-result-container').style.display = 'block';
+            document.getElementById('quiz-final-score').innerText = `NILAI AKHIR KAMU: ${score} / 100`;
+        }
+    </script>
+</body>
+</html>
